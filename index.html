@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sea Monkey Simulator</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600&amp;family=Fredoka:wght@500;600&amp;display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="top">
+      <div class="header-inner">
+        <div>
+          <h1>Sea Monkey Simulator</h1>
+          <p class="tagline">Feed them, build their world, and watch your tiny ocean civilization evolve.</p>
+        </div>
+        <nav class="header-actions" aria-label="Primary navigation">
+          <button id="fullscreenBtn" type="button" class="header-btn">Fullscreen</button>
+          <a href="#how" class="header-link">How to Play</a>
+          <a href="#about" class="header-link">About</a>
+          <a href="#privacy" class="header-link">Privacy</a>
+          <a href="#contact" class="header-link">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="site-main">
+      <section class="play-section" aria-labelledby="play-title">
+        <h2 id="play-title" class="section-heading">Play</h2>
+        <div id="gameWindow" class="game-window" aria-label="Embedded Sea Monkey Simulator">
+          <div class="game-window-bar">
+            <span class="game-window-title">Sea Monkey World</span>
+            <span class="game-window-hint">Press <kbd>F</kbd> for fullscreen (button works on mobile)</span>
+          </div>
+          <div class="game-frame">
+            <iframe
+              id="gameEmbed"
+              src="sea-monkeys-53.html"
+              title="Sea Monkey Simulator Game"
+              loading="eager"
+              allow="fullscreen"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" class="content-section">
+        <h2>How to Play</h2>
+        <p>Pick a tool from the right-side menu in the game window, then click to feed, plant, build, or interact.</p>
+        <p>Sea monkeys grow through life stages, form bonds, and react to your actions and random site events.</p>
+        <p>Use fast-forward to accelerate progress, and use swirl if the population starts clustering too tightly.</p>
+      </section>
+
+      <section id="about" class="content-section">
+        <h2>About</h2>
+        <p>
+          Sea Monkey Simulator is a browser ecosystem toy where autonomous sea monkeys build structures,
+          develop moods, and create emergent stories over long sessions.
+        </p>
+      </section>
+
+      <section id="faq" class="content-section">
+        <h2>FAQ</h2>
+        <p><strong>Does this run on mobile?</strong> Yes. The game frame scales responsively for smaller screens.</p>
+        <p><strong>Do I need to install anything?</strong> No. It runs directly in your browser.</p>
+      </section>
+
+      <section id="privacy" class="content-section">
+        <h2>Privacy</h2>
+        <p>This site may use cookies for basic functionality and future analytics or ad integrations.</p>
+        <p>Third-party vendors, including Google, may serve ads on this site in the future.</p>
+        <p>Google may use cookies to serve ads based on prior visits to this and other websites.</p>
+        <p>
+          You can learn about ad personalization and opt out in Google Ads Settings:
+          <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer">adssettings.google.com</a>
+        </p>
+      </section>
+
+      <section id="contact" class="content-section">
+        <h2>Contact</h2>
+        <p>Questions, feedback, or bug reports:</p>
+        <p><a href="mailto:contact@seamonkeysimulator.com">contact@seamonkeysimulator.com</a></p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span>&copy; <span id="year"></span> Sea Monkey Simulator</span>
+        <div class="footer-links">
+          <a href="#privacy">Privacy</a>
+          <a href="mailto:contact@seamonkeysimulator.com">Contact</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        const gameWindow = document.getElementById("gameWindow");
+        const gameEmbed = document.getElementById("gameEmbed");
+        const fullscreenBtn = document.getElementById("fullscreenBtn");
+        const body = document.body;
+
+        const isTypingTarget = (el) => {
+          if (!el) return false;
+          const tag = el.tagName;
+          return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+        };
+
+        const isNativeFullscreen = () =>
+          document.fullscreenElement === gameWindow || document.webkitFullscreenElement === gameWindow;
+
+        const hasNativeFullscreen = () =>
+          Boolean(gameWindow.requestFullscreen || gameWindow.webkitRequestFullscreen);
+
+        const isFocusMode = () => gameWindow.classList.contains("focus-mode");
+
+        const enterFocusMode = () => {
+          gameWindow.classList.add("focus-mode");
+          body.classList.add("focus-mode-active");
+          window.scrollTo(0, 0);
+        };
+
+        const exitFocusMode = () => {
+          gameWindow.classList.remove("focus-mode");
+          body.classList.remove("focus-mode-active");
+        };
+
+        const updateFullscreenLabel = () => {
+          fullscreenBtn.textContent = isNativeFullscreen() || isFocusMode() ? "Exit Fullscreen" : "Fullscreen";
+        };
+
+        const enterFullscreen = async () => {
+          if (gameWindow.requestFullscreen) {
+            await gameWindow.requestFullscreen();
+            return;
+          }
+          if (gameWindow.webkitRequestFullscreen) {
+            gameWindow.webkitRequestFullscreen();
+          }
+        };
+
+        const exitFullscreen = async () => {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+            return;
+          }
+          if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          }
+        };
+
+        const toggleFullscreen = async () => {
+          try {
+            if (isNativeFullscreen()) {
+              await exitFullscreen();
+            } else if (isFocusMode()) {
+              exitFocusMode();
+            } else if (hasNativeFullscreen()) {
+              await enterFullscreen();
+            } else {
+              enterFocusMode();
+            }
+          } catch (err) {
+            enterFocusMode();
+          }
+          updateFullscreenLabel();
+        };
+
+        fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+        const handleKeydown = (event) => {
+          if (event.repeat || isTypingTarget(event.target)) return;
+          if (event.key.toLowerCase() !== "f") return;
+          event.preventDefault();
+          toggleFullscreen();
+        };
+
+        document.addEventListener("keydown", handleKeydown);
+        gameEmbed.addEventListener("load", () => {
+          try {
+            gameEmbed.contentWindow.addEventListener("keydown", handleKeydown);
+          } catch (err) {
+            console.warn("Could not bind iframe keydown listener", err);
+          }
+        });
+
+        document.addEventListener("fullscreenchange", updateFullscreenLabel);
+        document.addEventListener("webkitfullscreenchange", updateFullscreenLabel);
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "hidden" && isFocusMode()) {
+            exitFocusMode();
+            updateFullscreenLabel();
+          }
+        });
+
+        document.getElementById("year").textContent = String(new Date().getFullYear());
+        updateFullscreenLabel();
+      })();
+    </script>
+  </body>
+</html>
